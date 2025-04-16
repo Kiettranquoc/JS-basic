@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Danh sách người</title>
+</head>
+<body>
+  <h2>Danh sách người</h2>
+  <ul id="list"></ul>
+
+  <h3>Thêm người</h3>
+  <form id="form">
+    <input name="name" placeholder="Tên" required>
+    <input name="age" type="number" placeholder="Tuổi" required>
+    <button>Thêm</button>
+  </form>
+
+  <script>
+    const ws = new WebSocket("ws://" + location.host);
+    const list = document.getElementById('list');
+
+    ws.onmessage = e => {
+      const msg = JSON.parse(e.data);
+      if (msg.type === 'init') {
+        list.innerHTML = '';
+        msg.data.forEach(p => {
+          const li = document.createElement('li');
+          li.textContent = `${p.name} (${p.age} tuổi)`;
+          list.appendChild(li);
+        });
+      }
+      if (msg.type === 'new') {
+        const li = document.createElement('li');
+        li.textContent = `${msg.data.name} (${msg.data.age} tuổi)`;
+        list.appendChild(li);
+      }
+    };
+
+    document.getElementById('form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const data = new URLSearchParams(form);
+      await fetch('/', {
+        method: 'POST',
+        body: data
+      });
+      e.target.reset();
+    });
+  </script>
+</body>
+</html>
